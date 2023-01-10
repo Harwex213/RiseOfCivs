@@ -1,0 +1,9 @@
+{
+  "name": "map-generator",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "type": "module",
+  "dependencies": {
+    "seedrandom": "^3.0.5"
+  }
+}
