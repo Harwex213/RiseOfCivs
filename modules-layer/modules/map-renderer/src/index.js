@@ -1,7 +1,7 @@
 import Konva from "konva";
-import { MAP_MARKS } from "../../models/map.mjs";
+import { tileTypes } from "../../models/map.mjs";
 
-const markToColor = (number) => {
+const tileTypeToColor = (number) => {
     if (number === -1) {
         return "#c22626";
     }
@@ -15,7 +15,7 @@ const markToColor = (number) => {
         return "#c9bd10";
     }
 
-    if (number === MAP_MARKS.LAND) {
+    if (number === tileTypes.LAND) {
         return "#494949";
     }
 }
@@ -46,7 +46,7 @@ const renderMap = (map, config) => {
             y: land.j * tileSize,
             width: tileSize,
             height: tileSize,
-            fill: markToColor(land.mark),
+            fill: tileTypeToColor(land.tileType),
         });
 
         layer.add(renderTile);
