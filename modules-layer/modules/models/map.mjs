@@ -1,7 +1,23 @@
-export const MAP_MARKS = {
-    EMPTY: 0,
-    LAND: 1,
-    COAST: 2,
+export const tileTypes = {
+    SEA: "sea",
+    LAND: "land",
+    COAST: "coast",
+}
+
+export const biomTypes = {
+    TUNDRA: "tundra",
+    DESERT: "desert",
+    FLATLAND: "flatland",
+    GRASSLAND: "grassland",
+    MOUNTAIN: "mountain",
+    NONE: "none",
+}
+
+export const areaTypes = {
+    HILLS: "hills",
+    JUNGLE: "jungle",
+    FOREST: "forest",
+    NONE: "none",
 }
 
 const up = [0, -1];
@@ -27,13 +43,19 @@ export class MapGenerationConfig {
     mapSizes = { width: null, height: null };
     regionSize = null;
     playersAmount = null;
-    playersAmountToLandPercent = {
-        2: null,
-        3: null,
-        4: null,
+    mapSizeTypeToResolution = {
+        SMALL: null,
+        MEDIUM: null,
+        BIG: null,
+    };
+    waterBalanceValue = null;
+    waterBalanceTypeValues = {
+        LESSWATER: null,
+        BALANCE: null,
+        MOREWATER: null,
     };
     maxDistanceBetweenPlayers = null;
-    emptyLandBoundary = null;
+    seaLandBoundary = null;
 }
 
 export class MapRenderConfig {
@@ -46,7 +68,9 @@ export class MapTile {
     constructor(i = 0, j = 0) {
         this.i = i;
         this.j = j;
-        this.mark = MAP_MARKS.EMPTY;
+        this.tileType = tileTypes.SEA;
+        this.biomType = biomTypes.NONE;
+        this.areaType = areaTypes.NONE;
     }
 }
 
@@ -58,6 +82,7 @@ export class Map {
         this.matrix = Array.from(Array(this.width), (_, x) => {
             return Array.from(Array(this.height), (_, y) => new MapTile(x, y));
         });
+        this.regions = [];
         this.lands = [];
     }
 }

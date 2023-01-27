@@ -1,4 +1,4 @@
-import { MAP_MARKS, SINGLE_VECTORS, Map } from "../../models/map.mjs";
+import { tileTypes, SINGLE_VECTORS, Map } from "../../models/map.mjs";
 import Randomizer from "./randomizer.js";
 
 export default class MapGenerator {
@@ -7,60 +7,63 @@ export default class MapGenerator {
             mapSizes: { width: config.mapSizes.width, height: config.mapSizes.height },
             regionSize: config.regionSize,
             playersAmount: config.playersAmount,
-            playersAmountToLandPercent: { ...config.playersAmountToLandPercent },
+            waterBalanceValue: config.waterBalanceValue,
             maxDistanceBetweenPlayers: config.maxDistanceBetweenPlayers,
-            emptyLandBoundary: config.emptyLandBoundary,
+            seaLandBoundary: config.seaLandBoundary,
         };
         this._calculateParams();
     }
 
     _calculateParams() {
-        const { playersAmountToLandPercent, playersAmount, mapSizes } = this._config;
+        const { regionSize, mapSizes, waterBalanceValue } = this._config;
 
-        const landPercent = playersAmountToLandPercent[playersAmount];
+        const totalHexesAmount = mapSizes.width * mapSizes.height;
+        const landHexesAmount = totalHexesAmount - (totalHexesAmount * waterBalanceValue);
+        const regionsAmount = Math.trunc(landHexesAmount / regionSize);
+        
         this._params = {
-            targetMass: mapSizes.width * mapSizes.height * landPercent,
+            targetMass: regionsAmount * regionSize,
             centerPoint: [mapSizes.width / 2 - 1, mapSizes.height / 2 - 1],
         };
     }
 
     generateMap(randomSeed) {
-        const { mapSizes, maxDistanceBetweenPlayers, playersAmount, emptyLandBoundary } = this._config;
+        const { mapSizes, maxDistanceBetweenPlayers, playersAmount, seaLandBoundary } = this._config;
         const { centerPoint, targetMass } = this._params;
         const randomizer = new Randomizer(randomSeed);
 
         const map = new Map(mapSizes.width, mapSizes.height);
         const coasts = [centerPoint];
 
-        const markCoast = (point) => {
-            if (point[0] !== emptyLandBoundary && map.matrix[point[0] - 1][point[1]].mark === MAP_MARKS.EMPTY) {
+        const tileTypeCoast = (point) => {
+            if (point[0] !== seaLandBoundary && map.matrix[point[0] - 1][point[1]].tileType === tileTypes.SEA) {
                 coasts.push([point[0] - 1, point[1]]);
-                map.matrix[point[0] - 1][point[1]].mark = MAP_MARKS.COAST;
+                map.matrix[point[0] - 1][point[1]].tileType = tileTypes.COAST;
             }
-            if (point[0] + emptyLandBoundary + 1 !== mapSizes.width && map.matrix[point[0] + 1][point[1]].mark === MAP_MARKS.EMPTY) {
+            if (point[0] + seaLandBoundary + 1 !== mapSizes.width && map.matrix[point[0] + 1][point[1]].tileType === tileTypes.SEA) {
                 coasts.push([point[0] + 1, point[1]]);
-                map.matrix[point[0] + 1][point[1]].mark = MAP_MARKS.COAST;
+                map.matrix[point[0] + 1][point[1]].tileType = tileTypes.COAST;
             }
-            if (point[1] !== emptyLandBoundary && map.matrix[point[0]][point[1] - 1].mark === MAP_MARKS.EMPTY) {
+            if (point[1] !== seaLandBoundary && map.matrix[point[0]][point[1] - 1].tileType === tileTypes.SEA) {
                 coasts.push([point[0], point[1] - 1]);
-                map.matrix[point[0]][point[1] - 1].mark = MAP_MARKS.COAST;
+                map.matrix[point[0]][point[1] - 1].tileType = tileTypes.COAST;
             }
-            if (point[1] + emptyLandBoundary + 1 !== mapSizes.height && map.matrix[point[0]][point[1] + 1].mark === MAP_MARKS.EMPTY) {
+            if (point[1] + seaLandBoundary + 1 !== mapSizes.height && map.matrix[point[0]][point[1] + 1].tileType === tileTypes.SEA) {
                 coasts.push([point[0], point[1] + 1]);
-                map.matrix[point[0]][point[1] + 1].mark = MAP_MARKS.COAST;
+                map.matrix[point[0]][point[1] + 1].tileType = tileTypes.COAST;
             }
         }
         const checkingDirections = (point, possibleDirections) => {
-            if (point[0] !== 0 && map.matrix[point[0]][point[1] + SINGLE_VECTORS.UP[1]].mark === MAP_MARKS.COAST) {
+            if (point[0] !== 0 && map.matrix[point[0]][point[1] + SINGLE_VECTORS.UP[1]].tileType === tileTypes.COAST) {
                 possibleDirections.push(SINGLE_VECTORS.UP);
             }
-            if (point[1] + 1 !== mapSizes.height && map.matrix[point[0]][point[1] + SINGLE_VECTORS.DOWN[1]].mark === MAP_MARKS.COAST) {
+            if (point[1] + 1 !== mapSizes.height && map.matrix[point[0]][point[1] + SINGLE_VECTORS.DOWN[1]].tileType === tileTypes.COAST) {
                 possibleDirections.push(SINGLE_VECTORS.DOWN);
             }
-            if (point[0] !== 0 && map.matrix[point[0] + SINGLE_VECTORS.LEFT[0]][point[1]].mark === MAP_MARKS.COAST) {
+            if (point[0] !== 0 && map.matrix[point[0] + SINGLE_VECTORS.LEFT[0]][point[1]].tileType === tileTypes.COAST) {
                 possibleDirections.push(SINGLE_VECTORS.LEFT);
             }
-            if (point[0] + 1 !== mapSizes.width && map.matrix[point[0] + SINGLE_VECTORS.RIGHT[0]][point[1]].mark === MAP_MARKS.COAST) {
+            if (point[0] + 1 !== mapSizes.width && map.matrix[point[0] + SINGLE_VECTORS.RIGHT[0]][point[1]].tileType === tileTypes.COAST) {
                 possibleDirections.push(SINGLE_VECTORS.RIGHT);
             }
         }
@@ -81,25 +84,25 @@ export default class MapGenerator {
                 coasts.splice(coasts.indexOf([centerPoint[0], centerPoint[1]]), 1);
             }
 
-            map.matrix[centerPoint[0]][centerPoint[1]].mark = MAP_MARKS.LAND;
+            map.matrix[centerPoint[0]][centerPoint[1]].tileType = tileTypes.LAND;
             map.lands.push(map.matrix[centerPoint[0]][centerPoint[1]]);
-            markCoast(centerPoint);
+            tileTypeCoast(centerPoint);
         }
 
         for (const coast of coasts) {
-            map.matrix[coast[0]][coast[1]].mark = MAP_MARKS.LAND;
+            map.matrix[coast[0]][coast[1]].tileType = tileTypes.LAND;
             map.lands.push(map.matrix[coast[0]][coast[1]]);
         }
 
         const setPlayerLand = (point, movement, color) => {
-            map.matrix[point[0] + movement[0]][point[1] + movement[1]].mark = color;
+            map.matrix[point[0] + movement[0]][point[1] + movement[1]].tileType = color;
             map.lands.push(map.matrix[point[0] + movement[0]][point[1] + movement[1]]);
         }
         let coastsCopy = [...coasts];
         for (let playerColor = -1; playerColor >= -playersAmount; playerColor--) {
             const playerIndex = randomizer.getRandom(coastsCopy.length);
             const playerLand = coastsCopy[playerIndex];
-            map.matrix[playerLand[0]][playerLand[1]].mark = playerColor;
+            map.matrix[playerLand[0]][playerLand[1]].tileType = playerColor;
             map.lands.push(map.matrix[playerLand[0]][playerLand[1]]);
 
             coastsCopy.splice(playerIndex, 1);
