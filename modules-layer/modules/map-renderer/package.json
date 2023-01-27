@@ -1,0 +1,9 @@
+{
+  "name": "map-renderer",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "type": "module",
+  "dependencies": {
+    "konva": "^8.4.0"
+  }
+}
