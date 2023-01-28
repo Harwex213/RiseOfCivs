@@ -1,13 +1,22 @@
-import { tileTypes, SINGLE_VECTORS, Map } from "../../models/map.mjs";
+import { SINGLE_VECTORS, Map, tileTypes } from "../../models/map.mjs";
 import Randomizer from "./randomizer.js";
+
+export class MapGenerationConfig {
+    regionSize = null;
+    mapSizes = null;
+    waterBalancePercent = null;
+    playersAmount = null;
+    maxDistanceBetweenPlayers = null;
+    seaLandBoundary = null;
+}
 
 export default class MapGenerator {
     constructor(config) {
         this._config = {
-            mapSizes: { width: config.mapSizes.width, height: config.mapSizes.height },
             regionSize: config.regionSize,
+            mapSizes: { ...config.mapSizes },
+            waterBalancePercent: config.waterBalancePercent,
             playersAmount: config.playersAmount,
-            waterBalanceValue: config.waterBalanceValue,
             maxDistanceBetweenPlayers: config.maxDistanceBetweenPlayers,
             seaLandBoundary: config.seaLandBoundary,
         };
@@ -15,24 +24,26 @@ export default class MapGenerator {
     }
 
     _calculateParams() {
-        const { regionSize, mapSizes, waterBalanceValue } = this._config;
+        const { regionSize, mapSizes, waterBalancePercent } = this._config;
 
-        const totalHexesAmount = mapSizes.width * mapSizes.height;
-        const landHexesAmount = totalHexesAmount - (totalHexesAmount * waterBalanceValue);
-        const regionsAmount = Math.trunc(landHexesAmount / regionSize);
-        
+        const totalTilesAmount = mapSizes.width * mapSizes.height;
+        const landTilesAmount = totalTilesAmount - (totalTilesAmount * waterBalancePercent);
+        const regionsAmount = Math.trunc(landTilesAmount / regionSize);
+
         this._params = {
+            mapSizes,
+            regionsAmount,
             targetMass: regionsAmount * regionSize,
             centerPoint: [mapSizes.width / 2 - 1, mapSizes.height / 2 - 1],
         };
     }
 
     generateMap(randomSeed) {
-        const { mapSizes, maxDistanceBetweenPlayers, playersAmount, seaLandBoundary } = this._config;
-        const { centerPoint, targetMass } = this._params;
+        const { maxDistanceBetweenPlayers, playersAmount, seaLandBoundary, regionSize } = this._config;
+        const { mapSizes, centerPoint, targetMass, regionsAmount } = this._params;
         const randomizer = new Randomizer(randomSeed);
 
-        const map = new Map(mapSizes.width, mapSizes.height);
+        const map = new Map(mapSizes.width, mapSizes.height, regionsAmount, regionSize);
         const coasts = [centerPoint];
 
         const tileTypeCoast = (point) => {
