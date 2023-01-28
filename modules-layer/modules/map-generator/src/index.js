@@ -1,13 +1,34 @@
-import { tileTypes, SINGLE_VECTORS, Map } from "../../models/map.mjs";
+import { SINGLE_VECTORS, Map, tileTypes, mapSizeTypes, waterBalanceTypes } from "../../models/map.mjs";
 import Randomizer from "./randomizer.js";
+
+export class MapGenerationConfig {
+    regionSize = null;
+    mapSizeType = null;
+    mapSizeTypeToDimensions = {
+        [mapSizeTypes.SMALL]: [null, null],
+        [mapSizeTypes.MEDIUM]: [null, null],
+        [mapSizeTypes.BIG]: [null, null],
+    };
+    waterBalanceType = null;
+    waterBalanceTypeToValues = {
+        [waterBalanceTypes.LESS_WATER]: null,
+        [waterBalanceTypes.BALANCE]: null,
+        [waterBalanceTypes.MORE_WATER]: null,
+    };
+    playersAmount = null;
+    maxDistanceBetweenPlayers = null;
+    seaLandBoundary = null;
+}
 
 export default class MapGenerator {
     constructor(config) {
         this._config = {
-            mapSizes: { width: config.mapSizes.width, height: config.mapSizes.height },
             regionSize: config.regionSize,
+            mapSizeType: config.mapSizeType,
+            mapSizeTypeToDimensions: { ...config.mapSizeTypeToDimensions },
+            waterBalanceType: config.waterBalanceType,
+            waterBalanceTypeToValues: { ...config.waterBalanceTypeToValues },
             playersAmount: config.playersAmount,
-            waterBalanceValue: config.waterBalanceValue,
             maxDistanceBetweenPlayers: config.maxDistanceBetweenPlayers,
             seaLandBoundary: config.seaLandBoundary,
         };
@@ -15,21 +36,28 @@ export default class MapGenerator {
     }
 
     _calculateParams() {
-        const { regionSize, mapSizes, waterBalanceValue } = this._config;
+        const { regionSize, mapSizeType, mapSizeTypeToDimensions, waterBalanceType, waterBalanceTypeToValues } = this._config;
 
+        const mapSizes = {
+            width: mapSizeTypeToDimensions[mapSizeType][0],
+            height: mapSizeTypeToDimensions[mapSizeType][1],
+        };
+        const waterBalanceValue = waterBalanceTypeToValues[waterBalanceType];
         const totalTilesAmount = mapSizes.width * mapSizes.height;
         const landTilesAmount = totalTilesAmount - (totalTilesAmount * waterBalanceValue);
-        
+        const regionsAmount = Math.trunc(landTilesAmount / regionSize);
+
         this._params = {
-            regionsAmount: Math.trunc(landTilesAmount / regionSize),
+            mapSizes,
+            regionsAmount,
             targetMass: regionsAmount * regionSize,
             centerPoint: [mapSizes.width / 2 - 1, mapSizes.height / 2 - 1],
         };
     }
 
     generateMap(randomSeed) {
-        const { mapSizes, maxDistanceBetweenPlayers, playersAmount, seaLandBoundary, regionSize } = this._config;
-        const { centerPoint, targetMass, regionsAmount } = this._params;
+        const { maxDistanceBetweenPlayers, playersAmount, seaLandBoundary, regionSize } = this._config;
+        const { mapSizes, centerPoint, targetMass, regionsAmount } = this._params;
         const randomizer = new Randomizer(randomSeed);
 
         const map = new Map(mapSizes.width, mapSizes.height, regionsAmount, regionSize);

@@ -57,3 +57,9 @@ const renderMap = (map, config) => {
 };
 
 export default renderMap;
+
+export class MapRenderConfig {
+    tileSize = null;
+    canvasContainer = null;
+    canvasRes = { width: null, height: null };
+}

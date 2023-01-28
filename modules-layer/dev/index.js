@@ -1,21 +1,20 @@
-import MapGenerator from "map-generator";
-import renderMap from "map-renderer";
-import { MapGenerationConfig, MapRenderConfig } from "../modules/models/map.mjs";
+import MapGenerator, { MapGenerationConfig } from "map-generator";
+import renderMap, { MapRenderConfig } from "map-renderer";
+import { mapSizeTypes, waterBalanceTypes } from "../modules/models/map.mjs";
 
 const mapGeneratorConfig = new MapGenerationConfig();
-mapGeneratorConfig.mapSizeTypeToResolution = {
-    SMALL: [40, 30],
-    MEDIUM: [60, 40],
-    BIG: [70, 60],
+mapGeneratorConfig.mapSizeTypeToDimensions = {
+    [mapSizeTypes.SMALL]: [40, 30],
+    [mapSizeTypes.MEDIUM]: [60, 40],
+    [mapSizeTypes.BIG]: [70, 60],
 }
-mapGeneratorConfig.waterBalanceTypeValues = {
-    LESSWATER: 0.3,
-    BALANCE: 0.5,
-    MOREWATER: 0.7,
+mapGeneratorConfig.waterBalanceTypeToValues = {
+    [waterBalanceTypes.LESS_WATER]: 0.3,
+    [waterBalanceTypes.BALANCE]: 0.5,
+    [waterBalanceTypes.MORE_WATER]: 0.7,
 }
-mapGeneratorConfig.waterBalanceValue = mapGeneratorConfig.waterBalanceTypeValues.LESSWATER;
-mapGeneratorConfig.mapSizes = { width: mapGeneratorConfig.mapSizeTypeToResolution.SMALL[0], 
-    height: mapGeneratorConfig.mapSizeTypeToResolution.SMALL[1] };
+mapGeneratorConfig.waterBalanceType = waterBalanceTypes.BALANCE;
+mapGeneratorConfig.mapSizeType = mapSizeTypes.SMALL;
 mapGeneratorConfig.seaLandBoundary = 4;
 mapGeneratorConfig.playersAmount = 2;
 mapGeneratorConfig.maxDistanceBetweenPlayers = 10;

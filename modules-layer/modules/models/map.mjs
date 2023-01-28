@@ -1,3 +1,15 @@
+export const mapSizeTypes = {
+    SMALL: "small",
+    MEDIUM: "medium",
+    BIG: "big",
+}
+
+export const waterBalanceTypes = {
+    LESS_WATER: "less-water",
+    BALANCE: "balance",
+    MORE_WATER: "more-water"
+}
+
 export const tileTypes = {
     SEA: "sea",
     LAKE: "lake",
@@ -40,31 +52,6 @@ export const SINGLE_VECTORS = {
     RIGHT_DOWN: rightDown,
 }
 
-export class MapGenerationConfig {
-    mapSizes = { width: null, height: null };
-    regionSize = null;
-    playersAmount = null;
-    mapSizeTypeToResolution = {
-        SMALL: null,
-        MEDIUM: null,
-        BIG: null,
-    };
-    waterBalanceValue = null;
-    waterBalanceTypeValues = {
-        LESSWATER: null,
-        BALANCE: null,
-        MOREWATER: null,
-    };
-    maxDistanceBetweenPlayers = null;
-    seaLandBoundary = null;
-}
-
-export class MapRenderConfig {
-    tileSize = null;
-    canvasContainer = null;
-    canvasRes = { width: null, height: null };
-}
-
 export class MapTile {
     constructor(i = 0, j = 0) {
         this.i = i;
@@ -72,12 +59,12 @@ export class MapTile {
         this.tileType = tileTypes.SEA;
         this.biomType = biomTypes.NONE;
         this.areaType = areaTypes.NONE;
-        
+
         this._calculateNeighborsTiles();
     }
-    
+
     _calculateNeighborsTiles() {
-        
+
     }
 }
 
