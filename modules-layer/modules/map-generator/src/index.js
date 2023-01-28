@@ -1,20 +1,10 @@
-import { SINGLE_VECTORS, Map, tileTypes, mapSizeTypes, waterBalanceTypes } from "../../models/map.mjs";
+import { SINGLE_VECTORS, Map, tileTypes } from "../../models/map.mjs";
 import Randomizer from "./randomizer.js";
 
 export class MapGenerationConfig {
     regionSize = null;
-    mapSizeType = null;
-    mapSizeTypeToDimensions = {
-        [mapSizeTypes.SMALL]: [null, null],
-        [mapSizeTypes.MEDIUM]: [null, null],
-        [mapSizeTypes.BIG]: [null, null],
-    };
-    waterBalanceType = null;
-    waterBalanceTypeToValues = {
-        [waterBalanceTypes.LESS_WATER]: null,
-        [waterBalanceTypes.BALANCE]: null,
-        [waterBalanceTypes.MORE_WATER]: null,
-    };
+    mapSizes = null;
+    waterBalancePercent = null;
     playersAmount = null;
     maxDistanceBetweenPlayers = null;
     seaLandBoundary = null;
@@ -24,10 +14,8 @@ export default class MapGenerator {
     constructor(config) {
         this._config = {
             regionSize: config.regionSize,
-            mapSizeType: config.mapSizeType,
-            mapSizeTypeToDimensions: { ...config.mapSizeTypeToDimensions },
-            waterBalanceType: config.waterBalanceType,
-            waterBalanceTypeToValues: { ...config.waterBalanceTypeToValues },
+            mapSizes: { ...config.mapSizes },
+            waterBalancePercent: config.waterBalancePercent,
             playersAmount: config.playersAmount,
             maxDistanceBetweenPlayers: config.maxDistanceBetweenPlayers,
             seaLandBoundary: config.seaLandBoundary,
@@ -36,15 +24,10 @@ export default class MapGenerator {
     }
 
     _calculateParams() {
-        const { regionSize, mapSizeType, mapSizeTypeToDimensions, waterBalanceType, waterBalanceTypeToValues } = this._config;
+        const { regionSize, mapSizes, waterBalancePercent } = this._config;
 
-        const mapSizes = {
-            width: mapSizeTypeToDimensions[mapSizeType][0],
-            height: mapSizeTypeToDimensions[mapSizeType][1],
-        };
-        const waterBalanceValue = waterBalanceTypeToValues[waterBalanceType];
         const totalTilesAmount = mapSizes.width * mapSizes.height;
-        const landTilesAmount = totalTilesAmount - (totalTilesAmount * waterBalanceValue);
+        const landTilesAmount = totalTilesAmount - (totalTilesAmount * waterBalancePercent);
         const regionsAmount = Math.trunc(landTilesAmount / regionSize);
 
         this._params = {
