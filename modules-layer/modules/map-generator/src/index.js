@@ -17,22 +17,22 @@ export default class MapGenerator {
     _calculateParams() {
         const { regionSize, mapSizes, waterBalanceValue } = this._config;
 
-        const totalHexesAmount = mapSizes.width * mapSizes.height;
-        const landHexesAmount = totalHexesAmount - (totalHexesAmount * waterBalanceValue);
-        const regionsAmount = Math.trunc(landHexesAmount / regionSize);
+        const totalTilesAmount = mapSizes.width * mapSizes.height;
+        const landTilesAmount = totalTilesAmount - (totalTilesAmount * waterBalanceValue);
         
         this._params = {
+            regionsAmount: Math.trunc(landTilesAmount / regionSize),
             targetMass: regionsAmount * regionSize,
             centerPoint: [mapSizes.width / 2 - 1, mapSizes.height / 2 - 1],
         };
     }
 
     generateMap(randomSeed) {
-        const { mapSizes, maxDistanceBetweenPlayers, playersAmount, seaLandBoundary } = this._config;
-        const { centerPoint, targetMass } = this._params;
+        const { mapSizes, maxDistanceBetweenPlayers, playersAmount, seaLandBoundary, regionSize } = this._config;
+        const { centerPoint, targetMass, regionsAmount } = this._params;
         const randomizer = new Randomizer(randomSeed);
 
-        const map = new Map(mapSizes.width, mapSizes.height);
+        const map = new Map(mapSizes.width, mapSizes.height, regionsAmount, regionSize);
         const coasts = [centerPoint];
 
         const tileTypeCoast = (point) => {

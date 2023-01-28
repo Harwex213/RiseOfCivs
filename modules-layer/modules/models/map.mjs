@@ -1,5 +1,6 @@
 export const tileTypes = {
     SEA: "sea",
+    LAKE: "lake",
     LAND: "land",
     COAST: "coast",
 }
@@ -71,18 +72,30 @@ export class MapTile {
         this.tileType = tileTypes.SEA;
         this.biomType = biomTypes.NONE;
         this.areaType = areaTypes.NONE;
+        
+        this._calculateNeighborsTiles();
+    }
+    
+    _calculateNeighborsTiles() {
+        
+    }
+}
+
+export class MapRegion {
+    constructor(regionSize) {
+        this.tilesRegion = Array(regionSize);
     }
 }
 
 export class Map {
-    constructor(width, height) {
+    constructor(width, height, regionsAmount, regionSize) {
         this.width = Math.max(width, 0);
         this.height = Math.max(height, 0);
 
         this.matrix = Array.from(Array(this.width), (_, x) => {
             return Array.from(Array(this.height), (_, y) => new MapTile(x, y));
         });
-        this.regions = [];
+        this.regions = Array.from(Array(regionsAmount), (_) => new MapRegion(regionSize));
         this.lands = [];
     }
 }
