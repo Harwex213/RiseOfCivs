@@ -4,6 +4,6 @@
   "main": "src/index.js",
   "type": "module",
   "dependencies": {
-    "konva": "^8.4.0"
+    "pixi.js": "^7.1.1"
   }
 }
