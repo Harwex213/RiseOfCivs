@@ -1,8 +1,28 @@
-import renderMap, { MapRenderConfig } from "map-renderer";
+import { MapRenderer, MapRendererConfig, spriteSheetFrameTypes } from "map-renderer";
 
-const mapRenderConfig = new MapRenderConfig();
-mapRenderConfig.tileSize = 16;
-mapRenderConfig.canvasContainer = "container";
-mapRenderConfig.canvasRes = { width: 1920, height: 1080 };
+const mapRendererConfig = new MapRendererConfig();
+mapRendererConfig.tileSize = 43;
+mapRendererConfig.appContainerId = "container";
+mapRendererConfig.appDimensions = { width: 1920, height: 1920 };
+mapRendererConfig.spriteSheetPath = "assets/spritesheet.json";
+mapRendererConfig.spriteSheetFrameNames = {
+    [spriteSheetFrameTypes.water]: "water",
+    [spriteSheetFrameTypes.plainland]: "plainland",
+    [spriteSheetFrameTypes.grassland]: "grassland",
+    [spriteSheetFrameTypes.desert]: "desert",
+    [spriteSheetFrameTypes.mountain]: "mountain",
+    [spriteSheetFrameTypes.tundra]: "tundra",
+    [spriteSheetFrameTypes.forestGrassland]: "forest_grassland",
+    [spriteSheetFrameTypes.forestPlainland]: "forest_plainland",
+    [spriteSheetFrameTypes.forestTundra]: "forest_tundra",
+    [spriteSheetFrameTypes.hillsDesert]: "hills_desert",
+    [spriteSheetFrameTypes.hillsGrassland]: "hills_grassland",
+    [spriteSheetFrameTypes.hillsPlainland]: "hills_plainland",
+    [spriteSheetFrameTypes.hillsTundra]: "hills_tundra",
+    [spriteSheetFrameTypes.jungleGrassland]: "jungle_grassland",
+    [spriteSheetFrameTypes.junglePlainland]: "jungle_plainland",
+}
 
-export const renderMapAction = (map) => renderMap(map, mapRenderConfig);
+const mapRenderer = new MapRenderer(mapRendererConfig);
+
+export const renderMapAction = (map) => mapRenderer.render(map);

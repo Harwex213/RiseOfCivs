@@ -1,5 +1,6 @@
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
+import json from "@rollup/plugin-json";
 import serve from "rollup-plugin-serve";
 import livereload from "rollup-plugin-livereload";
 
@@ -11,10 +12,12 @@ export default {
 	},
 	plugins: [
 		resolve({
-			browser: true
+			browser: true,
+			preferBuiltins: false
 		}), // tells Rollup how to find es modules in node_modules
 		commonjs(), // converts commonJs to ES modules
 		serve("dev-dist"), // index.html should be in root of project
 		livereload(),
+		json(),
 	]
 };

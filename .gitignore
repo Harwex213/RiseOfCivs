@@ -1,4 +1,3 @@
 .idea
 node_modules
-dev-dist
-!dev-dist/index.html
+modules-layer/dev-dist/index.js
