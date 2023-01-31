@@ -1,11 +1,10 @@
 import { MapRenderer, MapRendererConfig, spriteSheetFrameTypes } from "map-renderer";
 import spriteSheetAtlasData from "../../dev-dist/assets/spritesheet.json";
 
-const mapRendererConfig = new MapRendererConfig();
+export const mapRendererConfig = new MapRendererConfig();
 mapRendererConfig.tileSize = 43;
 mapRendererConfig.app = {
     containerId: "container",
-    dimensions: { width: window.innerWidth, height: window.innerHeight },
 };
 mapRendererConfig.spriteSheet = {
     atlasData: spriteSheetAtlasData,
@@ -34,4 +33,7 @@ mapRendererConfig.viewport = {
 
 const mapRenderer = new MapRenderer(mapRendererConfig);
 
-export const renderMapAction = (map) => mapRenderer.render(map);
+export const renderMapAction = async (map) => {
+    mapRenderer.clean();
+    await mapRenderer.render(map);
+}
