@@ -15,9 +15,6 @@ const waterBalanceTypeToValues = {
 const mapGeneratorConfig = new MapGenerationConfig();
 mapGeneratorConfig.mapSizes = mapSizeTypeToDimensions[mapSizeTypes.SMALL];
 mapGeneratorConfig.waterBalancePercent = waterBalanceTypeToValues[waterBalanceTypes.BALANCE];
-mapGeneratorConfig.seaLandBoundary = 4;
-mapGeneratorConfig.playersAmount = 2;
-mapGeneratorConfig.maxDistanceBetweenPlayers = 10;
 mapGeneratorConfig.regionSize = 8;
 
 const mapGenerator = new MapGenerator(mapGeneratorConfig);

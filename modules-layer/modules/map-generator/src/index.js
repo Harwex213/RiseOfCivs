@@ -1,12 +1,10 @@
-import { SINGLE_VECTORS, Map, tileTypes } from "../../models/map.mjs";
+import { Map, tileTypes } from "../../models/map.mjs";
 import Randomizer from "./randomizer.js";
 
 export class MapGenerationConfig {
     regionSize = null;
     mapSizes = null;
     waterBalancePercent = null;
-    playersAmount = null;
-    maxDistanceBetweenPlayers = null;
 }
 
 export default class MapGenerator {
@@ -15,8 +13,6 @@ export default class MapGenerator {
             regionSize: config.regionSize,
             mapSizes: { ...config.mapSizes },
             waterBalancePercent: config.waterBalancePercent,
-            playersAmount: config.playersAmount,
-            maxDistanceBetweenPlayers: config.maxDistanceBetweenPlayers,
         };
         this._calculateParams();
     }
@@ -31,104 +27,168 @@ export default class MapGenerator {
         this._params = {
             mapSizes,
             regionsAmount,
-            targetMass: regionsAmount * regionSize,
             centerPoint: [mapSizes.width / 2 - 1, mapSizes.height / 2 - 1],
         };
     }
 
     generateMap(randomSeed) {
-        const { maxDistanceBetweenPlayers, playersAmount, regionSize } = this._config;
-        const { mapSizes, centerPoint, targetMass, regionsAmount } = this._params;
+        const { regionSize } = this._config;
+        const { mapSizes, centerPoint, regionsAmount } = this._params;
         const randomizer = new Randomizer(randomSeed);
 
-        const map = new Map(mapSizes.width, mapSizes.height, regionsAmount, regionSize);
-        const coasts = [centerPoint];
+        const map = new Map(mapSizes.width, mapSizes.height, regionsAmount);
+        const coasts = {
+            addCoast(tile) {
+                map.matrix[tile[0]][tile[1]].tileType = tileTypes.COAST;
+            },
+            removeCoast(tile) {
+                map.matrix[tile[0]][tile[1]].tileType = tileTypes.LAND;
+            },
+            getArrCoasts() {
+                const arrCoasts = [];
+                map.matrix.forEach((width) => {
+                    width.forEach((tile) => {
+                        if (tile.tileType === tileTypes.COAST) {
+                            arrCoasts.push([tile.i, tile.j]);
+                        }
+                    });
+                });
+                
+                return arrCoasts;
+            },
+            randomCoast() {
+                const arrCoasts = this.getArrCoasts();
+                return arrCoasts[randomizer.getRandom(arrCoasts.length)];
+            },
+        };
+        const assignedForRegion = {
+            tilesForRegion: [],
+            addTile(tile) {
+                this.tilesForRegion.push([tile[0], tile[1]]);
+            },
+            clearTilesForRegion() {
+                this.tilesForRegion.length = 0;
+            },
+            sendTilesToRegion(region) {
+                this.tilesForRegion.forEach(tile => {
+                    map.matrix[tile[0]][tile[1]].addRegionToMapTile(map.regions[region]);
+                    map.lands.push(map.matrix[tile[0]][tile[1]]);
+                });
+            },
+        };
+        const tileCounter = {
+            tileNumber: 0,
+            addTile() {
+                this.tileNumber++;
+            },
+            clearTile() {
+                this.tileNumber = 0;
+            },
+        };
+        const possibleDirections = {
+            allDirections: [],
+            currentDirections: [],
+            clearCurrentDirections() {
+                this.currentDirections.length = 0;
+            },
+            clearAllDirections() {
+                this.allDirections.length = 0;
+            },
+            checkDirections(point) {
+                Object.keys(map.matrix[point[0]][point[1]].neighboringTiles).forEach(direction => {
+                    const tileDirection = map.matrix[point[0]][point[1]].neighboringTiles[direction];
+                
+                    if (tileDirection !== "none" && map.matrix[tileDirection[0]][tileDirection[1]].tileType === tileTypes.COAST) {
+                        this.currentDirections.push(tileDirection);
+                    }
+                });
+            },
+            getRandomDirection(directions) {
+                const randomIndex = randomizer.getRandom(directions.length);
+                const chosenDirection = directions[randomIndex];
+                directions.splice(randomIndex, 1);
+                
+                return chosenDirection;
+            },
+            checkSameDirections() {
+                const temporarySet = new Set(this.allDirections.map(tileDirection => map.matrix[tileDirection[0]][tileDirection[1]]));
+                this.clearAllDirections();
+                for (const tileDirection of temporarySet) {
+                    if (tileDirection.tileType !== tileTypes.LAND) {
+                        this.allDirections.push([tileDirection.i, tileDirection.j]);
+                    }
+                }
+            },
+            addCurrentToAllDirections() {
+                this.allDirections.push(...this.currentDirections);
+                this.checkSameDirections();
+            },
+        };
 
         const tileTypeCoast = (point) => {
-            if (point[0] !== 0 && map.matrix[point[0] - 1][point[1]].tileType === tileTypes.SEA) {
-                coasts.push([point[0] - 1, point[1]]);
-                map.matrix[point[0] - 1][point[1]].tileType = tileTypes.COAST;
-            }
-            if (point[0] + 1 !== mapSizes.width && map.matrix[point[0] + 1][point[1]].tileType === tileTypes.SEA) {
-                coasts.push([point[0] + 1, point[1]]);
-                map.matrix[point[0] + 1][point[1]].tileType = tileTypes.COAST;
-            }
-            if (point[1] !== 0 && map.matrix[point[0]][point[1] - 1].tileType === tileTypes.SEA) {
-                coasts.push([point[0], point[1] - 1]);
-                map.matrix[point[0]][point[1] - 1].tileType = tileTypes.COAST;
-            }
-            if (point[1] + 1 !== mapSizes.height && map.matrix[point[0]][point[1] + 1].tileType === tileTypes.SEA) {
-                coasts.push([point[0], point[1] + 1]);
-                map.matrix[point[0]][point[1] + 1].tileType = tileTypes.COAST;
-            }
+            Object.keys(map.matrix[point[0]][point[1]].neighboringTiles).forEach(direction => {
+                const tileDirection = map.matrix[point[0]][point[1]].neighboringTiles[direction];
+                
+                if (tileDirection !== "none" && map.matrix[tileDirection[0]][tileDirection[1]].tileType === tileTypes.SEA) {
+                    coasts.addCoast(tileDirection);
+                }
+            });
         }
-        const checkingDirections = (point, possibleDirections) => {
-            if (point[1] !== 0 && map.matrix[point[0]][point[1] + SINGLE_VECTORS.UP[1]].tileType === tileTypes.COAST) {
-                possibleDirections.push(SINGLE_VECTORS.UP);
-            }
-            if (point[1] + 1 !== mapSizes.height && map.matrix[point[0]][point[1] + SINGLE_VECTORS.DOWN[1]].tileType === tileTypes.COAST) {
-                possibleDirections.push(SINGLE_VECTORS.DOWN);
-            }
-            if (point[0] !== 0 && map.matrix[point[0] + SINGLE_VECTORS.LEFT[0]][point[1]].tileType === tileTypes.COAST) {
-                possibleDirections.push(SINGLE_VECTORS.LEFT);
-            }
-            if (point[0] + 1 !== mapSizes.width && map.matrix[point[0] + SINGLE_VECTORS.RIGHT[0]][point[1]].tileType === tileTypes.COAST) {
-                possibleDirections.push(SINGLE_VECTORS.RIGHT);
-            }
+        
+        coasts.addCoast(centerPoint);
+        
+        const branchNoAllDirections = () => {
+            if (tileCounter.tileNumber > 0) {
+                assignedForRegion.tilesForRegion.forEach(tile => {
+                    map.matrix[tile[0]][tile[1]].tileType = tileTypes.LAKE;
+                });
+                
+                assignedForRegion.clearTilesForRegion();
+                tileCounter.clearTile();
+            } 
+            
+            const coast = coasts.randomCoast();
+            centerPoint[0] = coast[0];
+            centerPoint[1] = coast[1];
+            coasts.removeCoast(coast);
         }
-
-        for (let i = 0; i < targetMass; i++) {
-            const possibleDirections = [];
-            checkingDirections(centerPoint, possibleDirections);
-            const chosenDirection = possibleDirections[randomizer.getRandom(possibleDirections.length)]
-
-            if (typeof chosenDirection === 'undefined') {
-                const coastIndex = randomizer.getRandom(coasts.length);
-                centerPoint[0] = coasts[coastIndex][0];
-                centerPoint[1] = coasts[coastIndex][1];
-                coasts.splice(coastIndex, 1);
+        
+        const branchNoCurrentDirections = () => {
+            const chosenDirection = possibleDirections.getRandomDirection(possibleDirections.allDirections);
+            if (typeof chosenDirection === "undefined") {
+                branchNoAllDirections();
             } else {
-                centerPoint[0] += chosenDirection[0];
-                centerPoint[1] += chosenDirection[1];
-                coasts.splice(coasts.indexOf([centerPoint[0], centerPoint[1]]), 1);
+                centerPoint[0] = chosenDirection[0];
+                centerPoint[1] = chosenDirection[1];
+                coasts.removeCoast(chosenDirection);
             }
-
-            map.matrix[centerPoint[0]][centerPoint[1]].tileType = tileTypes.LAND;
-            map.lands.push(map.matrix[centerPoint[0]][centerPoint[1]]);
-            tileTypeCoast(centerPoint);
         }
 
-        for (const coast of coasts) {
-            map.matrix[coast[0]][coast[1]].tileType = tileTypes.LAND;
-            map.lands.push(map.matrix[coast[0]][coast[1]]);
+        for (let region = 0; region < regionsAmount; region++) {
+            for (tileCounter; tileCounter.tileNumber < regionSize; tileCounter.addTile()) {
+                possibleDirections.clearCurrentDirections();
+                possibleDirections.checkDirections(centerPoint);
+                const chosenDirection = possibleDirections.getRandomDirection(possibleDirections.currentDirections);
+                possibleDirections.addCurrentToAllDirections();
+
+                if (typeof chosenDirection === "undefined") {
+                    branchNoCurrentDirections();
+                } else {
+                    centerPoint[0] = chosenDirection[0];
+                    centerPoint[1] = chosenDirection[1];
+                    coasts.removeCoast(centerPoint);
+                }
+
+                tileTypeCoast(centerPoint);
+                assignedForRegion.addTile(centerPoint);
+            }
+            
+            assignedForRegion.sendTilesToRegion(region);
+            assignedForRegion.clearTilesForRegion();
+            possibleDirections.clearAllDirections();
+            tileCounter.clearTile();
         }
-
-        const setPlayerLand = (point, movement, color) => {
-            map.matrix[point[0] + movement[0]][point[1] + movement[1]].tileType = color;
-            map.lands.push(map.matrix[point[0] + movement[0]][point[1] + movement[1]]);
-        }
-        let coastsCopy = [...coasts];
-        for (let playerColor = -1; playerColor >= -playersAmount; playerColor--) {
-            const playerIndex = randomizer.getRandom(coastsCopy.length);
-            const playerLand = coastsCopy[playerIndex];
-            map.matrix[playerLand[0]][playerLand[1]].tileType = playerColor;
-            map.lands.push(map.matrix[playerLand[0]][playerLand[1]]);
-
-            coastsCopy.splice(playerIndex, 1);
-            coastsCopy = coastsCopy.filter(coast =>
-                (coast[0] > playerLand[0] + maxDistanceBetweenPlayers || coast[1] > playerLand[1] + maxDistanceBetweenPlayers) ||
-                (coast[0] < playerLand[0] - maxDistanceBetweenPlayers || coast[1] < playerLand[1] - maxDistanceBetweenPlayers));
-
-            setPlayerLand(playerLand, SINGLE_VECTORS.UP, playerColor);
-            setPlayerLand(playerLand, SINGLE_VECTORS.DOWN, playerColor);
-            setPlayerLand(playerLand, SINGLE_VECTORS.LEFT, playerColor);
-            setPlayerLand(playerLand, SINGLE_VECTORS.RIGHT, playerColor);
-            setPlayerLand(playerLand, SINGLE_VECTORS.LEFT_UP, playerColor);
-            setPlayerLand(playerLand, SINGLE_VECTORS.RIGHT_UP, playerColor);
-            setPlayerLand(playerLand, SINGLE_VECTORS.LEFT_DOWN, playerColor);
-            setPlayerLand(playerLand, SINGLE_VECTORS.RIGHT_DOWN, playerColor);
-        }
-
+        
         return map;
     }
 }
