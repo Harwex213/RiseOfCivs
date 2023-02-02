@@ -302,7 +302,7 @@
 		}
 	},
 	"meta": {
-		"image": "spritesheet.png",
+		"image": "assets/spritesheet.png",
 		"format": "RGBA8888",
 		"size": {
 			"w": 180,

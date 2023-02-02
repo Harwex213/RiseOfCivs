@@ -4,6 +4,7 @@
   "main": "src/index.js",
   "type": "module",
   "dependencies": {
-    "pixi.js": "^7.1.1"
+    "pixi-viewport": "^4.38.0",
+    "pixi.js": "^6.5.9"
   }
 }

@@ -1,64 +1,92 @@
-import { Application, Assets, Container, Sprite } from "pixi.js";
+import { Application, Container, Sprite, BaseTexture, Spritesheet } from "pixi.js";
+import { Viewport } from "pixi-viewport";
 import { oddTileOffsetPercent, spriteSheetFrameTypes } from "../models.js";
 import { tileTypes } from "../../../models/map.mjs";
 
 export class MapRenderer {
     _config;
     _pixiApp;
-    _spriteSheetLoadPromise;
+    _viewport;
     _tileDimensions;
+    _spriteSheet;
+    _spriteSheetLoadPromise;
 
     constructor(config) {
-        this._config = {
-            tileSize: config.tileSize,
-            pixiApp: {
-                containerId: config.appContainerId,
-                dimensions: { ...config.appDimensions }
-            },
-            spriteSheet: {
-                path: config.spriteSheetPath,
-                frameNames: { ...config.spriteSheetFrameNames }
-            },
-        };
+        this._config = { ...config };
 
         this._initPixiApp();
         this._calculateTileDimensions();
+        this._initViewport();
         this._loadSpriteSheet();
     }
 
     _initPixiApp() {
-        const { dimensions, containerId } = this._config.pixiApp;
+        const { dimensions, containerId } = this._config.app;
 
-        this._pixiApp = new Application({ background: "#000", ...dimensions });
+        this._pixiApp = new Application({ ...dimensions });
         document.getElementById(containerId).appendChild(this._pixiApp.view);
+    }
+
+    _initViewport() {
+        const { dimensions: appDimensions } = this._config.app;
+        const app = this._pixiApp;
+
+        const viewport = new Viewport({
+            screenWidth: appDimensions.width,
+            screenHeight: appDimensions.height,
+            passiveWheel: false,
+            interaction: app.renderer.plugins.interaction,
+        });
+
+        app.stage.addChild(viewport);
+        this._viewport = viewport;
+
+        viewport
+            .drag({
+                wheel: false,
+                mouseButtons: "left",
+            })
+            .pinch()
+            .decelerate()
+            .clamp({
+                direction: "all",
+                underflow: "center"
+            });
     }
 
     _calculateTileDimensions() {
         const { tileSize } = this._config;
 
-        const tileWidth = tileSize / 2 * Math.sqrt(3.7);
         this._tileDimensions = {
-            width: tileWidth,
+            width: tileSize,
             height: tileSize,
-            widthOffset: [0, tileWidth * oddTileOffsetPercent],
+            widthOffset: [0, tileSize * oddTileOffsetPercent],
         };
     }
 
     _loadSpriteSheet() {
-        const { path } = this._config.spriteSheet;
+        const { atlasData } = this._config.spriteSheet;
 
-        this._spriteSheetLoadPromise = Assets.load(path);
+        this._spriteSheet = new Spritesheet(
+            BaseTexture.from(atlasData.meta.image),
+            atlasData
+        );
+        this._spriteSheetLoadPromise = this._spriteSheet.parse();
     }
 
     async render(mapToRender) {
-        const { frameNames } = this._config.spriteSheet;
-        const tileDimensions = this._tileDimensions;
+        await this._spriteSheetLoadPromise;
+
+        this._resizeViewportToMapSizes({ width: mapToRender.width, height: mapToRender.height });
 
         const mapContainer = new Container();
-        this._pixiApp.stage.addChild(mapContainer);
+        this._viewport.addChild(mapContainer);
 
+        const { textureNames } = this._config.spriteSheet;
+        const tileDimensions = this._tileDimensions;
         const { matrix } = mapToRender;
-        const spriteSheet = await this._spriteSheetLoadPromise;
+
+        console.log(tileDimensions);
 
         for (const tilesRow of matrix) {
             for (const mapTile of tilesRow) {
@@ -66,8 +94,8 @@ export class MapRenderer {
                 const col = mapTile.j;
                 const rowParity = row & 1;
 
-                const frameType = this._getFrameType(frameNames, mapTile);
-                const tile = new Sprite(spriteSheet.textures[frameType]);
+                const textureName = this._getTextureName(textureNames, mapTile);
+                const tile = new Sprite(this._spriteSheet.textures[textureName]);
                 tile.x = col * tileDimensions.width + tileDimensions.widthOffset[rowParity];
                 tile.y = row * tileDimensions.height * 3 / 4;
 
@@ -76,7 +104,7 @@ export class MapRenderer {
         }
     }
 
-    _getFrameType = (frameNames, mapTile) => {
+    _getTextureName = (frameNames, mapTile) => {
         if (mapTile.tileType === tileTypes.SEA || mapTile.tileType === tileTypes.LAKE) {
             return frameNames[spriteSheetFrameTypes.water];
         }
@@ -84,5 +112,15 @@ export class MapRenderer {
             return frameNames[spriteSheetFrameTypes.desert];
         }
         return frameNames[spriteSheetFrameTypes.water];
+    }
+
+    _resizeViewportToMapSizes(mapSizes) {
+        const tileDimensions = this._tileDimensions;
+        const appDimensions = this._config.app.dimensions;
+
+        const mapWidth = mapSizes.height * tileDimensions.width + tileDimensions.widthOffset[1];
+        const mapHeight = mapSizes.width * tileDimensions.height;
+        this._viewport.resize(appDimensions.width, appDimensions.height, mapWidth, mapHeight);
+        this._viewport.moveCenter(mapWidth / 2, mapHeight / 2);
     }
 }
