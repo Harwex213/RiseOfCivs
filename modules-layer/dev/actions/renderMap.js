@@ -34,6 +34,5 @@ mapRendererConfig.viewport = {
 const mapRenderer = new MapRenderer(mapRendererConfig);
 
 export const renderMapAction = async (map) => {
-    mapRenderer.clean();
     await mapRenderer.render(map);
 }

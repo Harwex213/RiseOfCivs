@@ -83,6 +83,8 @@ export class MapRenderer {
     }
 
     async render(mapToRender) {
+        this.clean();
+
         await this._spriteSheetLoadPromise;
 
         const { textureNames } = this._config.spriteSheet;
