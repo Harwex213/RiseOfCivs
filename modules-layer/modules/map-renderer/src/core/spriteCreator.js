@@ -4,26 +4,26 @@ import { spriteSheetFrameTypes } from "../constants.js";
 
 const areaTypeToSpriteSheetFrameType = {
     [areaTypes.NONE]: {
-        [biomTypes.DESERT]: spriteSheetFrameTypes.desert,
-        [biomTypes.FLATLAND]: spriteSheetFrameTypes.plainland,
-        [biomTypes.GRASSLAND]: spriteSheetFrameTypes.grassland,
-        [biomTypes.MOUNTAIN]: spriteSheetFrameTypes.mountain,
-        [biomTypes.TUNDRA]: spriteSheetFrameTypes.tundra,
+        [biomTypes.DESERT]: spriteSheetFrameTypes.DESERT,
+        [biomTypes.FLATLAND]: spriteSheetFrameTypes.FLATLAND,
+        [biomTypes.GRASSLAND]: spriteSheetFrameTypes.GRASSLAND,
+        [biomTypes.MOUNTAIN]: spriteSheetFrameTypes.MOUNTAIN,
+        [biomTypes.TUNDRA]: spriteSheetFrameTypes.TUNDRA,
     },
     [areaTypes.HILLS]: {
-        [biomTypes.FLATLAND]: spriteSheetFrameTypes.hillsPlainland,
-        [biomTypes.GRASSLAND]: spriteSheetFrameTypes.hillsGrassland,
-        [biomTypes.DESERT]: spriteSheetFrameTypes.hillsDesert,
-        [biomTypes.TUNDRA]: spriteSheetFrameTypes.hillsTundra,
+        [biomTypes.FLATLAND]: spriteSheetFrameTypes.HILLS_FLATLAND,
+        [biomTypes.GRASSLAND]: spriteSheetFrameTypes.HILLS_GRASSLAND,
+        [biomTypes.DESERT]: spriteSheetFrameTypes.HILLS_DESERT,
+        [biomTypes.TUNDRA]: spriteSheetFrameTypes.HILLS_TUNDRA,
     },
     [areaTypes.FOREST]: {
-        [biomTypes.GRASSLAND]: spriteSheetFrameTypes.forestGrassland,
-        [biomTypes.FLATLAND]: spriteSheetFrameTypes.forestPlainland,
-        [biomTypes.TUNDRA]: spriteSheetFrameTypes.forestTundra,
+        [biomTypes.GRASSLAND]: spriteSheetFrameTypes.FOREST_GRASSLAND,
+        [biomTypes.FLATLAND]: spriteSheetFrameTypes.FOREST_FLATLAND,
+        [biomTypes.TUNDRA]: spriteSheetFrameTypes.FOREST_TUNDRA,
     },
     [areaTypes.JUNGLE]: {
-        [biomTypes.GRASSLAND]: spriteSheetFrameTypes.jungleGrassland,
-        [biomTypes.FLATLAND]: spriteSheetFrameTypes.junglePlainland,
+        [biomTypes.GRASSLAND]: spriteSheetFrameTypes.JUNGLE_GRASSLAND,
+        [biomTypes.FLATLAND]: spriteSheetFrameTypes.JUNGLE_FLATLAND,
     },
 };
 
@@ -52,6 +52,6 @@ export class SpriteCreator {
             return frameNames[frameType];
         }
 
-        return frameNames[spriteSheetFrameTypes.water];
+        return frameNames[spriteSheetFrameTypes.WATER];
     }
 }
