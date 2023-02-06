@@ -1,4 +1,4 @@
-import { spriteSheetFrameTypes } from "../models.js";
+import { spriteSheetFrameTypes } from "../constants.js";
 
 export class MapRendererConfig {
     tileSize = null;

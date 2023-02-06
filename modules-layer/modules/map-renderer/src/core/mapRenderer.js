@@ -1,8 +1,8 @@
-import { Application, Container, Sprite, BaseTexture, Spritesheet } from "pixi.js";
+import { Application, Container, BaseTexture, Spritesheet } from "pixi.js";
 import { Viewport } from "pixi-viewport";
-import { oddTileOffsetPercent, spriteSheetFrameTypes } from "../models.js";
-import { tileTypes } from "../../../models/map.mjs";
+import { oddTileOffsetPercent } from "../constants.js";
 import { ElementResizeObserver } from "../utils/elementResizeObserver.js";
+import { SpriteCreator } from "./spriteCreator.js";
 
 export class MapRenderer {
     _config;
@@ -13,6 +13,7 @@ export class MapRenderer {
     _tileDimensions;
     _spriteSheet;
     _spriteSheetLoadPromise;
+    _spriteCreator;
 
     constructor(config) {
         this._config = { ...config };
@@ -23,6 +24,7 @@ export class MapRenderer {
         this._initViewport();
         this._calculateTileDimensions();
         this._loadSpriteSheet();
+        this._initSpriteCreator();
     }
 
     _initPixiApp(appHtmlContainer) {
@@ -82,28 +84,21 @@ export class MapRenderer {
         this._spriteSheetLoadPromise = this._spriteSheet.parse();
     }
 
+    _initSpriteCreator() {
+        this._spriteCreator = new SpriteCreator(this._config.spriteSheet.textureNames, this._tileDimensions);
+    }
+
     async render(mapToRender) {
         this.clean();
 
         await this._spriteSheetLoadPromise;
 
-        const { textureNames } = this._config.spriteSheet;
-        const tileDimensions = this._tileDimensions;
-        const { matrix } = mapToRender;
-
         this._mapContainer = new Container();
+        const { matrix } = mapToRender;
 
         for (const tilesRow of matrix) {
             for (const mapTile of tilesRow) {
-                const row = mapTile.j;
-                const col = mapTile.i;
-                const rowParity = row & 1;
-
-                const textureName = this._getTextureName(textureNames, mapTile);
-                const tile = new Sprite(this._spriteSheet.textures[textureName]);
-                tile.x = col * tileDimensions.width + tileDimensions.widthOffset[rowParity];
-                tile.y = row * tileDimensions.height * 0.75;
-
+                const tile = this._spriteCreator.mapFromMapTile(mapTile, this._spriteSheet);
                 this._mapContainer.addChild(tile);
             }
         }
@@ -113,16 +108,6 @@ export class MapRenderer {
         this._viewport.moveCenter(renderMapSizes.width / 2, renderMapSizes.height / 2);
 
         this._viewport.addChild(this._mapContainer);
-    }
-
-    _getTextureName = (frameNames, mapTile) => {
-        if (mapTile.tileType === tileTypes.SEA || mapTile.tileType === tileTypes.LAKE) {
-            return frameNames[spriteSheetFrameTypes.water];
-        }
-        if (mapTile.tileType === tileTypes.LAND) {
-            return frameNames[spriteSheetFrameTypes.desert];
-        }
-        return frameNames[spriteSheetFrameTypes.water];
     }
 
     _resizeViewportToMapSizes(mapSizes) {
