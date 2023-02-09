@@ -1,5 +1,6 @@
-import { Map, tileTypes } from "../../models/map.mjs";
+import { Map, tileTypes, biomTypes, areaTypes } from "../../models/map.mjs";
 import Randomizer from "./randomizer.js";
+import { createNoise2D } from 'simplex-noise';
 
 export class MapGenerationConfig {
     regionSize = null;
@@ -187,6 +188,62 @@ export default class MapGenerator {
             assignedForRegion.clearTilesForRegion();
             possibleDirections.clearAllDirections();
             tileCounter.clearTile();
+        }
+        
+        const elevationAssignment = (elevation, tile) => {
+            if (elevation > 0.90) {
+                console.log(elevation);
+                tile.biomType = biomTypes.MOUNTAIN;
+            } else if (elevation > 0.60) {
+                tile.areaType = areaTypes.HILLS;
+            } 
+        }
+        const moistureAndTemperatureAssignment = (moisture, temperature, tile) => {
+            if (temperature > 0.50) {
+                if (moisture > 0.50) {
+                    tile.biomType = biomTypes.GRASSLAND;
+                } else {
+                    tile.biomType = biomTypes.DESERT;
+                }
+            } else if (temperature > 0.25) {
+                if (moisture > 0.50) {
+                    tile.biomType = biomTypes.FLATLAND;
+                } else {
+                    tile.biomType = biomTypes.TUNDRA;
+                }
+            } else {
+                if (moisture > 0.75) {
+                    tile.biomType = biomTypes.FLATLAND;
+                } else {
+                    tile.biomType = biomTypes.TUNDRA;
+                }
+            }
+        }
+        const genE = createNoise2D();
+        const genM = createNoise2D();
+        const genT = createNoise2D();
+        const noiseE = (nx, ny) => genE(nx, ny) / 2 + 0.5;
+        const noiseM = (nx, ny) => genM(nx, ny) / 2 + 0.5;
+        const noiseT = (nx, ny) => genT(nx, ny) / 2 + 0.5;
+        
+        for (let x = 0; x < mapSizes.width; x++) {
+            for (let y = 0; y < mapSizes.height; y++) {      
+                const nx = x/mapSizes.width - 0.5;
+                const ny = y/mapSizes.height - 0.5;
+                
+                const e = noiseE(4.0 * nx, 4.0 * ny);
+                //const equivalentElevation = e * e + 0.2 + (0.1 - 0.2) * Math.sin(Math.PI * (y / mapSizes.height));
+                const m = noiseM(4.0 * nx, 4.0 * ny);
+                const t = noiseT(4.0 * nx, 4.0 * ny);
+                
+                if (map.matrix[x][y].partRegion !== 'none') {
+                    elevationAssignment(e, map.matrix[x][y]);
+                    
+                    if (map.matrix[x][y].biomType !== biomTypes.MOUNTAIN) {
+                        moistureAndTemperatureAssignment(m, t, map.matrix[x][y]);
+                    }
+                }
+            }
         }
         
         return map;
