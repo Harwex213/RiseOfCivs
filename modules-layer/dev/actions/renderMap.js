@@ -92,6 +92,6 @@ const setDevTileInfo = (map) => {
 const mapRenderer = new MapRenderer(mapRendererConfig);
 
 export const renderMapAction = async (map) => {
-    setDevTileInfo(map);
+    //setDevTileInfo(map);
     await mapRenderer.render(map);
 }
