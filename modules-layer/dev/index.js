@@ -1,11 +1,5 @@
-import { action, seedRandom } from "./actions";
+import { action, changeableConfig } from "./actions";
 import { mapSizeTypes, waterBalanceTypes } from "../modules/models/map.mjs";
-import {
-    defaultMapGenerationConfigValues,
-    mapGeneratorConfig,
-    mapSizeTypeToDimensions,
-    waterBalanceTypeToValues,
-} from "./actions/generateMap.js";
 import { GuiManager, Select, Input, Button } from "./gui";
 
 const guiManager = new GuiManager(".controlBar");
@@ -28,9 +22,9 @@ const mapSizeSelect = new Select({
 mapSizeSelect.addOption(mapSizeTypes.SMALL, mapSizeTypes.SMALL);
 mapSizeSelect.addOption(mapSizeTypes.MEDIUM, mapSizeTypes.MEDIUM);
 mapSizeSelect.addOption(mapSizeTypes.BIG, mapSizeTypes.BIG);
-mapSizeSelect.setValue(defaultMapGenerationConfigValues.mapSizes);
+mapSizeSelect.setValue(changeableConfig.mapSizes);
 mapSizeSelect.onChange(async (value) => {
-    mapGeneratorConfig.mapSizes = mapSizeTypeToDimensions[value];
+    changeableConfig.mapSizes = value;
     await action();
 })
 guiManager.addGui(mapSizeSelect);
@@ -41,9 +35,9 @@ const waterBalanceSelect = new Select({
 waterBalanceSelect.addOption(waterBalanceTypes.LESS_WATER, waterBalanceTypes.LESS_WATER);
 waterBalanceSelect.addOption(waterBalanceTypes.BALANCE, waterBalanceTypes.BALANCE);
 waterBalanceSelect.addOption(waterBalanceTypes.MORE_WATER, waterBalanceTypes.MORE_WATER);
-waterBalanceSelect.setValue(defaultMapGenerationConfigValues.waterBalanceType);
+waterBalanceSelect.setValue(changeableConfig.waterBalanceType);
 waterBalanceSelect.onChange(async (value) => {
-    mapGeneratorConfig.waterBalancePercent = waterBalanceTypeToValues[value];
+    changeableConfig.waterBalanceType = value;
     await action();
 })
 guiManager.addGui(waterBalanceSelect);
@@ -53,10 +47,10 @@ const seedRandomInput = new Input({
 })
 seedRandomInput.onChange((value) => {
     if (value === "") {
-        seedRandom.value = undefined;
+        changeableConfig.seedRandom = undefined;
         return;
     }
-    seedRandom.value = value;
+    changeableConfig.seedRandom = value;
 });
 guiManager.addGui(seedRandomInput);
 
