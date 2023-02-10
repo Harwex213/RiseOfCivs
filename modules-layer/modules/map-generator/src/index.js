@@ -28,7 +28,7 @@ export default class MapGenerator {
         this._params = {
             mapSizes,
             regionsAmount,
-            centerPoint: [mapSizes.width / 2 - 1, mapSizes.height / 2 - 1],
+            centerPoint: [mapSizes.height / 2 - 1, mapSizes.width / 2 - 1],
         };
     }
 
@@ -47,10 +47,10 @@ export default class MapGenerator {
             },
             getArrCoasts() {
                 const arrCoasts = [];
-                map.matrix.forEach((width) => {
-                    width.forEach((tile) => {
+                map.matrix.forEach((height) => {
+                    height.forEach((tile) => {
                         if (tile.tileType === tileTypes.COAST) {
-                            arrCoasts.push([tile.i, tile.j]);
+                            arrCoasts.push([tile.row, tile.col]);
                         }
                     });
                 });
@@ -116,7 +116,7 @@ export default class MapGenerator {
                 this.clearAllDirections();
                 for (const tileDirection of temporarySet) {
                     if (tileDirection.tileType !== tileTypes.LAND) {
-                        this.allDirections.push([tileDirection.i, tileDirection.j]);
+                        this.allDirections.push([tileDirection.row, tileDirection.col]);
                     }
                 }
             },
@@ -192,24 +192,25 @@ export default class MapGenerator {
         
         const elevationAssignment = (elevation, tile) => {
             if (elevation > 0.90) {
-                console.log(elevation);
                 tile.biomType = biomTypes.MOUNTAIN;
             } else if (elevation > 0.60) {
                 tile.areaType = areaTypes.HILLS;
             } 
         }
         const moistureAndTemperatureAssignment = (moisture, temperature, tile) => {
-            if (temperature > 0.50) {
-                if (moisture > 0.50) {
+            if (temperature > 2) {
+                if (moisture > 0.55) {
                     tile.biomType = biomTypes.GRASSLAND;
+                } else if (moisture > 0.25) {
+                    tile.biomType = biomTypes.FLATLAND;
                 } else {
                     tile.biomType = biomTypes.DESERT;
                 }
-            } else if (temperature > 0.25) {
-                if (moisture > 0.50) {
-                    tile.biomType = biomTypes.FLATLAND;
+            } else if (temperature > 0.5) {
+                if (moisture > 0.5) {
+                    tile.biomType = biomTypes.GRASSLAND;
                 } else {
-                    tile.biomType = biomTypes.TUNDRA;
+                    tile.biomType = biomTypes.FLATLAND;
                 }
             } else {
                 if (moisture > 0.75) {
@@ -222,25 +223,29 @@ export default class MapGenerator {
         const genE = createNoise2D();
         const genM = createNoise2D();
         const genT = createNoise2D();
-        const noiseE = (nx, ny) => genE(nx, ny) / 2 + 0.5;
-        const noiseM = (nx, ny) => genM(nx, ny) / 2 + 0.5;
-        const noiseT = (nx, ny) => genT(nx, ny) / 2 + 0.5;
+        const noiseE = (nRow, nCol) => genE(nRow, nCol) / 2 + 0.5;
+        const noiseM = (nRow, nCol) => genM(nRow, nCol) / 2 + 0.5;
+        const noiseT = (nRow, nCol) => genT(nRow, nCol) / 2 + 0.5;
+        const poles = -1;
+        const equator = 3.5;
         
-        for (let x = 0; x < mapSizes.width; x++) {
-            for (let y = 0; y < mapSizes.height; y++) {      
-                const nx = x/mapSizes.width - 0.5;
-                const ny = y/mapSizes.height - 0.5;
+        for (let row = 0; row < mapSizes.height; row++) {
+            for (let col = 0; col < mapSizes.width; col++) {      
+                const nRow = row/mapSizes.height - 0.5;
+                const nCol = col/mapSizes.width - 0.5;
                 
-                const e = noiseE(4.0 * nx, 4.0 * ny);
-                //const equivalentElevation = e * e + 0.2 + (0.1 - 0.2) * Math.sin(Math.PI * (y / mapSizes.height));
-                const m = noiseM(4.0 * nx, 4.0 * ny);
-                const t = noiseT(4.0 * nx, 4.0 * ny);
+                const e = noiseE(4.0 * nRow, 4.0 * nCol);
+                const moisture = noiseM(4.0 * nRow, 4.0 * nCol);
+                const temperature = noiseT(4.0 * nRow, 4.0 * nCol);
+                const normalizedTemperature = temperature * temperature 
+                    + poles 
+                    + equator * Math.sin(Math.PI * (col / mapSizes.height));
                 
-                if (map.matrix[x][y].partRegion !== 'none') {
-                    elevationAssignment(e, map.matrix[x][y]);
+                if (map.matrix[row][col].partRegion !== 'none') {
+                    elevationAssignment(e, map.matrix[row][col]);
                     
-                    if (map.matrix[x][y].biomType !== biomTypes.MOUNTAIN) {
-                        moistureAndTemperatureAssignment(m, t, map.matrix[x][y]);
+                    if (map.matrix[row][col].biomType !== biomTypes.MOUNTAIN) {
+                        moistureAndTemperatureAssignment(moisture, normalizedTemperature, map.matrix[row][col]);
                     }
                 }
             }

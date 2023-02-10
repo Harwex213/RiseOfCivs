@@ -44,27 +44,27 @@ export const directionsTypes = {
 
 export const ODDR_DIRECTION_DIFFERENCES = [
     {
-        [directionsTypes.LEFT_DOWN]: [-1, +1],
-        [directionsTypes.RIGHT_DOWN]: [0, +1],
-        [directionsTypes.RIGHT]: [+1,  0],
-        [directionsTypes.RIGHT_UP]: [0, -1],
+        [directionsTypes.LEFT_DOWN]: [+1, -1],
+        [directionsTypes.RIGHT_DOWN]: [+1, 0],
+        [directionsTypes.RIGHT]: [0, +1],
+        [directionsTypes.RIGHT_UP]: [-1, 0],
         [directionsTypes.LEFT_UP]: [-1, -1],
-        [directionsTypes.LEFT]: [-1,  0],
+        [directionsTypes.LEFT]: [0, -1],
     },
     {
-        [directionsTypes.LEFT_DOWN]: [0, +1],
+        [directionsTypes.LEFT_DOWN]: [+1, 0],
         [directionsTypes.RIGHT_DOWN]: [+1, +1],
-        [directionsTypes.RIGHT]: [+1,  0],
-        [directionsTypes.RIGHT_UP]: [+1, -1],
-        [directionsTypes.LEFT_UP]: [0, -1],
-        [directionsTypes.LEFT]: [-1,  0],
+        [directionsTypes.RIGHT]: [0, +1],
+        [directionsTypes.RIGHT_UP]: [-1, +1],
+        [directionsTypes.LEFT_UP]: [-1, 0],
+        [directionsTypes.LEFT]: [0, -1],
     },
 ];
 
 export class MapTile {
-    constructor(i = 0, j = 0, neighboringTiles) {
-        this.i = i;
-        this.j = j;
+    constructor(row = 0, col = 0, neighboringTiles) {
+        this.row = row;
+        this.col = col;
         this.tileType = tileTypes.SEA;
         this.biomType = biomTypes.NONE;
         this.areaType = areaTypes.NONE;
@@ -74,7 +74,7 @@ export class MapTile {
     
     addRegionToMapTile(region) {
         this.partRegion = { regionIndex: region.index };
-        region.tilesRegion.push([this.i, this.j]);
+        region.tilesRegion.push([this.row, this.col]);
     }
 }
 
@@ -86,23 +86,23 @@ export class MapRegion {
 }
 
 export class Map {
-    constructor(width, height, regionsAmount, regionSize) {
+    constructor(width, height, regionsAmount) {
         this.width = Math.max(width, 0);
         this.height = Math.max(height, 0);
 
-        this.matrix = Array.from(Array(this.width), (_, x) => {
-            return Array.from(Array(this.height), (_, y) => {
-                const parity = y & 1;
+        this.matrix = Array.from(Array(this.height), (_, row) => {
+            return Array.from(Array(this.width), (_, col) => {
+                const parity = row & 1;
                 const diff = ODDR_DIRECTION_DIFFERENCES[parity];
                 const copyDiff = Object.assign({}, diff);
                 
                 Object.keys(copyDiff).forEach(direction => {
-                    const neighboringTile = [x + copyDiff[direction][0], y + copyDiff[direction][1]];
-                    copyDiff[direction] = (neighboringTile[0] >= 0 && neighboringTile[0] < this.width && 
-                        neighboringTile[1] >= 0 && neighboringTile[1] < this.height) ? [neighboringTile[0], neighboringTile[1]] : "none"
+                    const neighboringTile = [row + copyDiff[direction][0], col + copyDiff[direction][1]];
+                    copyDiff[direction] = (neighboringTile[0] >= 0 && neighboringTile[0] < this.height && 
+                        neighboringTile[1] >= 0 && neighboringTile[1] < this.width) ? [neighboringTile[0], neighboringTile[1]] : "none"
                 });
                 
-                return new MapTile(x, y, copyDiff)
+                return new MapTile(row, col, copyDiff)
             })
         });
         this.regions = Array.from(Array(regionsAmount), (_, regionIndex) => new MapRegion(regionIndex));
