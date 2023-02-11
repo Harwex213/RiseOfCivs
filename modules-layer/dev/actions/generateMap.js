@@ -1,5 +1,5 @@
 import MapGenerator, { MapGenerationConfig } from "map-generator";
-import { mapSizeTypes, waterBalanceTypes } from "../../modules/models/map.mjs";
+import { mapSizeTypes, waterBalanceTypes } from "models/map";
 import { changeableConfig } from "./changeableConfig.js";
 
 const mapSizeTypeToDimensions = {

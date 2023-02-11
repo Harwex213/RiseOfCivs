@@ -1,58 +1,45 @@
-import { areaTypes, biomTypes, tileTypes } from "../../../modules/models/map.mjs";
+import { areaTypes, biomTypes, tileTypes } from "models/map";
 
 export const renderDevBioms = (map) => {
-    // all bioms without areas
-    map.matrix[0][0].tileType = tileTypes.LAND;
-    map.matrix[0][0].biomType = biomTypes.GRASSLAND;
+    let row = 0;
+    const createTileFiller = (areaType) => {
+        const scopeRow = row++;
+        let scopeCol = 0;
+        return (biomType) => {
+            map.matrix[scopeRow][scopeCol].tileType = tileTypes.LAND;
+            map.matrix[scopeRow][scopeCol].biomType = biomType;
+            map.matrix[scopeRow][scopeCol].areaType = areaType;
+            scopeCol++;
+        };
+    };
 
-    map.matrix[1][0].tileType = tileTypes.LAND;
-    map.matrix[1][0].biomType = biomTypes.FLATLAND;
+    for (const tilesRow of map.matrix) {
+        for (const mapTile of tilesRow) {
+            mapTile.tileType = tileTypes.SEA;
+            mapTile.biomType = biomTypes.NONE;
+            mapTile.areaType = areaTypes.NONE;
+        }
+    }
+    
+    const setTileWithoutArea = createTileFiller(areaTypes.NONE);
+    setTileWithoutArea(biomTypes.GRASSLAND);
+    setTileWithoutArea(biomTypes.FLATLAND);
+    setTileWithoutArea(biomTypes.DESERT);
+    setTileWithoutArea(biomTypes.TUNDRA);
+    setTileWithoutArea(biomTypes.MOUNTAIN);
+    
+    const setTileWithForest = createTileFiller(areaTypes.FOREST);
+    setTileWithForest(biomTypes.GRASSLAND);
+    setTileWithForest(biomTypes.FLATLAND);
+    setTileWithForest(biomTypes.TUNDRA);
 
-    map.matrix[2][0].tileType = tileTypes.LAND;
-    map.matrix[2][0].biomType = biomTypes.TUNDRA;
+    const setTileWithJungle = createTileFiller(areaTypes.JUNGLE);
+    setTileWithJungle(biomTypes.GRASSLAND);
+    setTileWithJungle(biomTypes.FLATLAND);
 
-    map.matrix[3][0].tileType = tileTypes.LAND;
-    map.matrix[3][0].biomType = biomTypes.DESERT;
-
-    map.matrix[4][0].tileType = tileTypes.LAND;
-    map.matrix[4][0].biomType = biomTypes.MOUNTAIN;
-
-    //  all bioms with forest
-    map.matrix[0][1].tileType = tileTypes.LAND;
-    map.matrix[0][1].biomType = biomTypes.GRASSLAND;
-    map.matrix[0][1].areaType = areaTypes.FOREST;
-
-    map.matrix[1][1].tileType = tileTypes.LAND;
-    map.matrix[1][1].biomType = biomTypes.FLATLAND;
-    map.matrix[1][1].areaType = areaTypes.FOREST;
-
-    map.matrix[2][1].tileType = tileTypes.LAND;
-    map.matrix[2][1].biomType = biomTypes.TUNDRA;
-    map.matrix[2][1].areaType = areaTypes.FOREST;
-
-    // all bioms with jungle
-    map.matrix[0][2].tileType = tileTypes.LAND;
-    map.matrix[0][2].biomType = biomTypes.GRASSLAND;
-    map.matrix[0][2].areaType = areaTypes.JUNGLE;
-
-    map.matrix[1][2].tileType = tileTypes.LAND;
-    map.matrix[1][2].biomType = biomTypes.FLATLAND;
-    map.matrix[1][2].areaType = areaTypes.JUNGLE;
-
-    // all bioms with hills
-    map.matrix[0][3].tileType = tileTypes.LAND;
-    map.matrix[0][3].biomType = biomTypes.GRASSLAND;
-    map.matrix[0][3].areaType = areaTypes.HILLS;
-
-    map.matrix[1][3].tileType = tileTypes.LAND;
-    map.matrix[1][3].biomType = biomTypes.FLATLAND;
-    map.matrix[1][3].areaType = areaTypes.HILLS;
-
-    map.matrix[2][3].tileType = tileTypes.LAND;
-    map.matrix[2][3].biomType = biomTypes.TUNDRA;
-    map.matrix[2][3].areaType = areaTypes.HILLS;
-
-    map.matrix[3][3].tileType = tileTypes.LAND;
-    map.matrix[3][3].biomType = biomTypes.DESERT;
-    map.matrix[3][3].areaType = areaTypes.HILLS;
+    const setTileWithHills = createTileFiller(areaTypes.HILLS);
+    setTileWithHills(biomTypes.GRASSLAND);
+    setTileWithHills(biomTypes.FLATLAND);
+    setTileWithHills(biomTypes.DESERT);
+    setTileWithHills(biomTypes.TUNDRA);
 }

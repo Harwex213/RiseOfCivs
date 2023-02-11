@@ -1,4 +1,4 @@
-export const debounce = (fn) => {
+export const waitSingleExec = (fn) => {
     let debounceFlag = false;
 
     return async () => {
