@@ -230,20 +230,20 @@ export default class MapGenerator {
         const equator = 3.5;
         
         for (let row = 0; row < mapSizes.height; row++) {
-            for (let col = 0; col < mapSizes.width; col++) {      
-                const nRow = row/mapSizes.height - 0.5;
-                const nCol = col/mapSizes.width - 0.5;
-                
-                const e = noiseE(4.0 * nRow, 4.0 * nCol);
+            for (let col = 0; col < mapSizes.width; col++) {
+                const nRow = (row / mapSizes.height) - 0.5;
+                const nCol = (col / mapSizes.width) - 0.5;
+
+                const elevation = noiseE(4.0 * nRow, 4.0 * nCol);
                 const moisture = noiseM(4.0 * nRow, 4.0 * nCol);
                 const temperature = noiseT(4.0 * nRow, 4.0 * nCol);
-                const normalizedTemperature = temperature * temperature 
-                    + poles 
-                    + equator * Math.sin(Math.PI * (col / mapSizes.height));
-                
+                const normalizedTemperature = temperature * temperature
+                    + poles
+                    + equator * Math.sin(Math.PI * (row / mapSizes.height));
+
                 if (map.matrix[row][col].partRegion !== 'none') {
-                    elevationAssignment(e, map.matrix[row][col]);
-                    
+                    elevationAssignment(elevation, map.matrix[row][col]);
+
                     if (map.matrix[row][col].biomType !== biomTypes.MOUNTAIN) {
                         moistureAndTemperatureAssignment(moisture, normalizedTemperature, map.matrix[row][col]);
                     }

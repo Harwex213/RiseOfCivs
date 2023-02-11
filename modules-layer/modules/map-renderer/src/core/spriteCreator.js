@@ -37,11 +37,9 @@ export class SpriteCreator {
         const textureName = this._getTextureName(this._textureNames, mapTile);
         const tile = new Sprite(mapBiomsSpriteSheet.textures[textureName]);
 
-        const row = mapTile.j;
-        const col = mapTile.i;
-        const rowParity = row & 1;
-        tile.x = col * this._tileDimensions.width + this._tileDimensions.widthOffset[rowParity];
-        tile.y = row * this._tileDimensions.height * 0.75;
+        const rowParity = mapTile.row & 1;
+        tile.y = mapTile.row * this._tileDimensions.height * 0.75;
+        tile.x = mapTile.col * this._tileDimensions.width + this._tileDimensions.widthOffset[rowParity];
 
         return tile;
     }
