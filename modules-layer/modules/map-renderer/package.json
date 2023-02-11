@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "pixi-viewport": "^4.38.0",
-    "pixi.js": "^6.5.9"
+    "pixi.js": "^6.5.9",
+    "models": "file:../models"
   }
 }

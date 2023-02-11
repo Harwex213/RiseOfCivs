@@ -1,4 +1,4 @@
-import { Map, tileTypes, biomTypes, areaTypes } from "../../models/map.mjs";
+import { Map, tileTypes, biomTypes, areaTypes } from "models/map";
 import Randomizer from "./randomizer.js";
 import { createNoise2D } from 'simplex-noise';
 

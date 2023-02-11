@@ -1,5 +1,5 @@
 import { action, changeableConfig } from "./actions";
-import { mapSizeTypes, waterBalanceTypes } from "../modules/models/map.mjs";
+import { mapSizeTypes, waterBalanceTypes } from "models/map";
 import { GuiManager, Select, Input, Button } from "./gui";
 
 const guiManager = new GuiManager(".controlBar");

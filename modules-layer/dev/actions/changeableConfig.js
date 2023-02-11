@@ -1,4 +1,4 @@
-import { mapSizeTypes, waterBalanceTypes } from "../../modules/models/map.mjs";
+import { mapSizeTypes, waterBalanceTypes } from "models/map";
 
 export const changeableConfig = {
     mapSizes: mapSizeTypes.SMALL,

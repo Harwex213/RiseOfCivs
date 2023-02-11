@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "seedrandom": "^3.0.5",
-    "simplex-noise": "^4.0.1"
+    "simplex-noise": "^4.0.1",
+    "models": "file:../models"
   }
 }

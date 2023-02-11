@@ -1,4 +1,4 @@
-import { areaTypes, biomTypes, tileTypes } from "../../../modules/models/map.mjs";
+import { areaTypes, biomTypes, tileTypes } from "models/map";
 
 export const renderDevBioms = (map) => {
     // all bioms without areas

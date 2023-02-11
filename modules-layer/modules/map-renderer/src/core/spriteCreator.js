@@ -1,5 +1,5 @@
 import { Sprite } from "pixi.js";
-import { areaTypes, biomTypes, tileTypes } from "../../../models/map.mjs";
+import { areaTypes, biomTypes, tileTypes } from "models/map";
 import { spriteSheetFrameTypes } from "../constants.js";
 
 const areaTypeToSpriteSheetFrameType = {
