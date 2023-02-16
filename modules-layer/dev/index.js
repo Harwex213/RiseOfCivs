@@ -1,6 +1,6 @@
 import { action, changeableConfig } from "./actions";
 import { mapSizeTypes, waterBalanceTypes } from "models/map";
-import { GuiManager, Select, Input, Button } from "./gui";
+import { GuiManager, Select, Input, Button, Checkbox } from "control-bar-gui";
 
 const guiManager = new GuiManager(".controlBar");
 
@@ -45,13 +45,23 @@ guiManager.addGui(waterBalanceSelect);
 const seedRandomInput = new Input({
     placeholder: "random seed"
 })
-seedRandomInput.onChange((value) => {
+seedRandomInput.onChange(async (value) => {
     if (value === "") {
         changeableConfig.seedRandom = undefined;
         return;
     }
     changeableConfig.seedRandom = value;
+    await action();
 });
 guiManager.addGui(seedRandomInput);
+
+const toRenderDevBiomsCheckbox = new Checkbox({
+    placeholder: "Render dev bioms",
+})
+toRenderDevBiomsCheckbox.onChange(async (value) => {
+    changeableConfig.renderDevBioms = value;
+    await action();
+})
+guiManager.addGui(toRenderDevBiomsCheckbox);
 
 action();

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <title>Map-renderer</title>
+    <link rel="stylesheet" href="./dist-index.css">
     <style>
         body {
             margin: 0;
@@ -23,49 +24,22 @@
         }
 
         .controlBar {
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            gap: 0.5rem;
-            font-family: "Roboto", sans-serif;
             overflow-y: scroll;
-        }
-
-        .placeholder {
-            margin: 0;
-            color: #fff;
-            font-size: 1rem;
-            text-align: center;
         }
 
         #regenerate-button {
             font-size: 1.1rem;
             min-height: 35px;
         }
-
-        .button {
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .select {
-            width: 100%;
-            font-size: 1.25rem;
-        }
-
-        .input {
-            width: 100%;
-            font-size: 1.25rem;
-        }
     </style>
 </head>
 <body>
-<div class="viewport">
-    <div id="container"></div>
-    <div class="controlBar">
+<main>
+    <div class="viewport">
+        <div id="container"></div>
+        <div class="controlBar"></div>
     </div>
-</div>
-<script type="module" src="./index.js"></script>
+</main>
+<script type="module" src="./dist-index.js"></script>
 </body>
 </html>
