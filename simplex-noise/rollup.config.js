@@ -3,6 +3,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 import serve from "rollup-plugin-serve";
 import livereload from "rollup-plugin-livereload";
+import css from "rollup-plugin-import-css";
 
 const srcPath = "src";
 const distPath = "dist";
@@ -22,5 +23,6 @@ export default {
 		serve(distPath), // index.html should be in root of project
 		livereload(),
 		json(),
+		css(),
 	]
 };
