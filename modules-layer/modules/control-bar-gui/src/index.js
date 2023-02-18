@@ -14,6 +14,24 @@ export class GuiManager {
         this.#guiList[gui.id] = gui;
         this.#container.appendChild(gui.element);
     }
+    
+    removeGui(id) {
+        const gui = this.#guiList[id];
+        if (gui) {
+            gui.element.remove();
+        }
+    }
+    
+    removeRangeGui(ids) {
+        for (const id of ids) {
+            this.removeGui(id);
+        }
+    }
+    
+    clearAllGui() {
+        const ids = Object.values(this.#guiList).map(gui => gui.id);
+        this.removeRangeGui(ids);
+    }
 }
 
 export { Button } from "./elements/button.js";
