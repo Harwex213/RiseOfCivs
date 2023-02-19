@@ -1,6 +1,7 @@
 import { Map, tileTypes, biomTypes, areaTypes } from "models/map";
 import Randomizer from "./randomizer.js";
 import { createNoise2D } from 'simplex-noise';
+import PoissonDiskSampling from "poisson-disk-sampling"
 
 export class MapGenerationConfig {
     regionSize = null;
@@ -206,17 +207,29 @@ export default class MapGenerator {
                 } else {
                     tile.biomType = biomTypes.DESERT;
                 }
+                
+                if (tile.areaType !== areaTypes.HILLS && tile.biomType !== biomTypes.DESERT && treesFlags[tile.row][tile.col] === true) {
+                    tile.areaType = areaTypes.JUNGLE;
+                }
             } else if (temperature > 0.5) {
                 if (moisture > 0.5) {
                     tile.biomType = biomTypes.GRASSLAND;
                 } else {
                     tile.biomType = biomTypes.FLATLAND;
                 }
+                
+                if (tile.areaType !== areaTypes.HILLS && treesFlags[tile.row][tile.col] === true) {
+                    tile.areaType = areaTypes.FOREST;
+                }
             } else {
                 if (moisture > 0.75) {
                     tile.biomType = biomTypes.FLATLAND;
                 } else {
                     tile.biomType = biomTypes.TUNDRA;
+                }
+                
+                if (tile.areaType !== areaTypes.HILLS && treesFlags[tile.row][tile.col] === true) {
+                    tile.areaType = areaTypes.FOREST;
                 }
             }
         }
@@ -228,6 +241,49 @@ export default class MapGenerator {
         const noiseT = (nRow, nCol) => genT(nRow, nCol) / 2 + 0.5;
         const poles = -1;
         const equator = 3.5;
+        const treesFlags = Array.from(Array(mapSizes.height), () => new Array(mapSizes.width));
+        const p = new PoissonDiskSampling({
+            shape: [mapSizes.height, mapSizes.width],
+            minDistance: 10,
+            maxDistance: 10,
+            tries: 30,
+        });
+        const lowFrequencyPoints = p.fill();
+        lowFrequencyPoints.forEach((lowFrequencyPoint) => {
+            const lowRow = Math.trunc(lowFrequencyPoint[0]);
+            const lowCol = Math.trunc(lowFrequencyPoint[1]);
+            treesFlags[lowRow][lowCol] = true;
+            const p = new PoissonDiskSampling({
+                shape: [5, 5],
+                minDistance: 1,
+                maxDistance: 1,
+                tries: 5,
+            });
+            const highFrequencyPoints = p.fill();
+            console.log(highFrequencyPoints);
+            highFrequencyPoints.forEach((highFrequencyPoint) => {
+                const radiusRow = Math.trunc(highFrequencyPoint[0]);
+                const radiusCol = Math.trunc(highFrequencyPoint[1]);
+                const vector = [0, 0];
+                vector[0] = (2 === radiusRow) ? 0 : radiusRow - 2;
+                vector[1] = (2 === radiusCol) ? 0 : radiusCol - 2;
+                const highRow = vector[0] + lowRow;
+                const highCol = vector[1] + lowCol;
+                
+                if (highRow >= 0 && highRow < mapSizes.height && highCol >= 0 && highCol < mapSizes.width) {
+                    treesFlags[highRow][highCol] = true;
+                }                    
+            });
+        });
+        /*
+        const treesFlags = Array.from(Array(mapSizes.height), () => new Array(mapSizes.width));
+        const pointsTrees = p.fill();
+        pointsTrees.forEach((point) => {
+            const row = Math.trunc(point[0]);
+            const col = Math.trunc(point[1]);
+            treesFlags[row][col] = true;
+        });
+        */
         
         for (let row = 0; row < mapSizes.height; row++) {
             for (let col = 0; col < mapSizes.width; col++) {
