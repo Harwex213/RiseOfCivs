@@ -1,10 +1,11 @@
-import { Map, tileTypes, biomTypes, areaTypes } from "models/map";
+import { Map, tileTypes, biomTypes, areaTypes, MapRegion } from "models/map";
 import Randomizer from "./randomizer.js";
 import { createNoise2D } from 'simplex-noise';
 import PoissonDiskSampling from "poisson-disk-sampling"
 
 export class MapGenerationConfig {
-    regionSize = null;
+    minRegionSize = null;
+    maxRegionSize = null;
     mapSizes = null;
     waterBalancePercent = null;
 }
@@ -12,7 +13,8 @@ export class MapGenerationConfig {
 export default class MapGenerator {
     constructor(config) {
         this._config = {
-            regionSize: config.regionSize,
+            minRegionSize: config.minRegionSize,
+            maxRegionSize: config.maxRegionSize,
             mapSizes: { ...config.mapSizes },
             waterBalancePercent: config.waterBalancePercent,
         };
@@ -24,21 +26,26 @@ export default class MapGenerator {
 
         const totalTilesAmount = mapSizes.width * mapSizes.height;
         const landTilesAmount = totalTilesAmount - (totalTilesAmount * waterBalancePercent);
-        const regionsAmount = Math.trunc(landTilesAmount / regionSize);
 
         this._params = {
             mapSizes,
-            regionsAmount,
-            centerPoint: [mapSizes.height / 2 - 1, mapSizes.width / 2 - 1],
+            centerPoint: [0, 0],
         };
     }
 
     generateMap(randomSeed) {
-        const { regionSize } = this._config;
-        const { mapSizes, centerPoint, regionsAmount } = this._params;
+        const { minRegionSize, maxRegionSize } = this._config;
+        const { mapSizes, centerPoint } = this._params;
         const randomizer = new Randomizer(randomSeed);
 
-        const map = new Map(mapSizes.width, mapSizes.height, regionsAmount);
+        const map = new Map(mapSizes.width, mapSizes.height);
+        const tilesWithoutRegion = [];
+        const tilesForRegionsLeft = [];
+        map.matrix.forEach((height) => {
+                    height.forEach((tile) => {
+                tilesForRegionsLeft.push(`[${tile.row}, ${tile.col}]`);
+            });
+        });
         const coasts = {
             addCoast(tile) {
                 map.matrix[tile[0]][tile[1]].tileType = tileTypes.COAST;
@@ -60,7 +67,7 @@ export default class MapGenerator {
             },
             randomCoast() {
                 const arrCoasts = this.getArrCoasts();
-                return arrCoasts[randomizer.getRandom(arrCoasts.length)];
+                return arrCoasts[randomizer.getRandom(arrCoasts.length - 1)];
             },
         };
         const assignedForRegion = {
@@ -74,6 +81,7 @@ export default class MapGenerator {
             sendTilesToRegion(region) {
                 this.tilesForRegion.forEach(tile => {
                     map.matrix[tile[0]][tile[1]].addRegionToMapTile(map.regions[region]);
+                    tilesForRegionsLeft.splice(tilesForRegionsLeft.indexOf(`[${tile[0]}, ${tile[1]}]`), 1);
                     map.lands.push(map.matrix[tile[0]][tile[1]]);
                 });
             },
@@ -106,7 +114,7 @@ export default class MapGenerator {
                 });
             },
             getRandomDirection(directions) {
-                const randomIndex = randomizer.getRandom(directions.length);
+                const randomIndex = randomizer.getRandom(directions.length - 1);
                 const chosenDirection = directions[randomIndex];
                 directions.splice(randomIndex, 1);
                 
@@ -143,16 +151,20 @@ export default class MapGenerator {
             if (tileCounter.tileNumber > 0) {
                 assignedForRegion.tilesForRegion.forEach(tile => {
                     map.matrix[tile[0]][tile[1]].tileType = tileTypes.LAKE;
+                    tilesWithoutRegion.push([tile[0], tile[1]]);
+                    tilesForRegionsLeft.splice(tilesForRegionsLeft.indexOf(`[${tile[0]}, ${tile[1]}]`), 1);
                 });
                 
                 assignedForRegion.clearTilesForRegion();
                 tileCounter.clearTile();
-            } 
+            }
             
-            const coast = coasts.randomCoast();
-            centerPoint[0] = coast[0];
-            centerPoint[1] = coast[1];
-            coasts.removeCoast(coast);
+            if (tilesForRegionsLeft.length !== 0) {
+                const coast = coasts.randomCoast();
+                centerPoint[0] = coast[0];
+                centerPoint[1] = coast[1];
+                coasts.removeCoast(coast);
+            }
         }
         
         const branchNoCurrentDirections = () => {
@@ -166,7 +178,9 @@ export default class MapGenerator {
             }
         }
 
-        for (let region = 0; region < regionsAmount; region++) {
+        ifNoTiles: for (let region = 0; tilesForRegionsLeft.length !== 0; region++) {
+            const regionSize = randomizer.getRandom(maxRegionSize, minRegionSize);
+            
             for (tileCounter; tileCounter.tileNumber < regionSize; tileCounter.addTile()) {
                 possibleDirections.clearCurrentDirections();
                 possibleDirections.checkDirections(centerPoint);
@@ -180,11 +194,16 @@ export default class MapGenerator {
                     centerPoint[1] = chosenDirection[1];
                     coasts.removeCoast(centerPoint);
                 }
-
-                tileTypeCoast(centerPoint);
-                assignedForRegion.addTile(centerPoint);
+                
+                if (tilesForRegionsLeft.length !== 0) {
+                    tileTypeCoast(centerPoint);
+                    assignedForRegion.addTile(centerPoint);
+                } else {
+                    break ifNoTiles;
+                }
             }
             
+            map.regions.push(new MapRegion(region, regionSize)); 
             assignedForRegion.sendTilesToRegion(region);
             assignedForRegion.clearTilesForRegion();
             possibleDirections.clearAllDirections();
@@ -260,7 +279,6 @@ export default class MapGenerator {
                 tries: 5,
             });
             const highFrequencyPoints = p.fill();
-            console.log(highFrequencyPoints);
             highFrequencyPoints.forEach((highFrequencyPoint) => {
                 const radiusRow = Math.trunc(highFrequencyPoint[0]);
                 const radiusCol = Math.trunc(highFrequencyPoint[1]);
@@ -275,15 +293,6 @@ export default class MapGenerator {
                 }                    
             });
         });
-        /*
-        const treesFlags = Array.from(Array(mapSizes.height), () => new Array(mapSizes.width));
-        const pointsTrees = p.fill();
-        pointsTrees.forEach((point) => {
-            const row = Math.trunc(point[0]);
-            const col = Math.trunc(point[1]);
-            treesFlags[row][col] = true;
-        });
-        */
         
         for (let row = 0; row < mapSizes.height; row++) {
             for (let col = 0; col < mapSizes.width; col++) {

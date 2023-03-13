@@ -19,14 +19,15 @@ export class MapTile {
 }
 
 export class MapRegion {
-    constructor(regionIndex) {
+    constructor(index, size) {
         this.tilesRegion = [];
-        this.index = regionIndex;
+        this.size = size;
+        this.index = index;
     }
 }
 
 export class Map {
-    constructor(width, height, regionsAmount) {
+    constructor(width, height) {
         this.width = Math.max(width, 0);
         this.height = Math.max(height, 0);
 
@@ -45,7 +46,7 @@ export class Map {
                 return new MapTile(row, col, copyDiff)
             })
         });
-        this.regions = Array.from(Array(regionsAmount), (_, regionIndex) => new MapRegion(regionIndex));
+        this.regions = [];
         this.lands = [];
     }
 }
